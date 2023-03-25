@@ -1,0 +1,16 @@
+.login{
+    padding:0px 100px;
+   
+
+}
+
+.logsize{
+    margin-top: 60px;
+    /* border: 1px solid black; */
+    box-shadow: 5px 5px 10px rgba(0,0,0,0.5);
+    height: 80vh;
+    display: flex;
+    flex-direction: row;
+    justify-content:center !important;
+    align-items: center !important;
+}

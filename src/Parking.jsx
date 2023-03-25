@@ -17,23 +17,30 @@ function Parking() {
     const [passvalue, setPassvalue] = useState()
     const [loading, setLoading] = useState(false)
     const [endloading, setEndloading] = useState(false)
-
+    const [page,setpage] = useState(1)
     const createVehicle = async () => {
         try {
-            setLoading(true)
-            setChangebtn(false)
-            const vehicle = await axios.post(`${Config.api}/createvehicle`, {
-                client_name: name,
-                vehicleNo: vehicleno,
-                vehicle_name: vehiclename,
-            })
-            if (vehicle.data.message === "vehicle created successfully") {
-                alert(vehicle.data.message)
-                getVehicle()
-                setLoading(false)
+            if (name.length > 0 && vehiclename.length > 0 && vehicleno.length > 0) {
+                setLoading(true)
+                setChangebtn(false)
+                const vehicle = await axios.post(`${Config.api}/createvehicle`, {
+                    client_name: name,
+                    vehicleNo: vehicleno,
+                    vehicle_name: vehiclename,
+                })
+                if (vehicle.data.message === "vehicle created successfully") {
+                    setName("")
+                    setVehiclename("")
+                    setvehicleno("")
+                    alert(vehicle.data.message)
+                    getVehicle()
+                    setLoading(false)
+                } else {
+                    alert(vehicle.data.message)
+                    setLoading(false)
+                }
             } else {
-                alert(vehicle.data.message)
-                setLoading(false)
+                alert("Please fill inputbox")
             }
         } catch (error) {
             alert('something went wrong')
@@ -43,7 +50,7 @@ function Parking() {
 
     const getVehicle = async () => {
         try {
-            const getdata = await axios.get(`${Config.api}/allvehicle`)
+            const getdata = await axios.get(`${Config.api}/allvehicle?page=${page}`)
             console.log(getdata.data)
             setGetVehicleData(getdata.data)
 
@@ -62,8 +69,9 @@ function Parking() {
             const endtime = await axios.put(`${Config.api}/endvehicle/${id}`)
             console.log(endtime)
             const getvehice = await axios.get(`${Config.api}/getvehicle/${id}`)
-            setvehicleendtime([...vehicleendtime, getvehice.data.getVehicle])
-            console.log(getvehice.data.getVehicle)
+            setvehicleendtime([...vehicleendtime, getvehice.data])
+            console.log(getvehice.data)
+            getVehicle()
             setCheck(true)
             setEndloading(false)
         } catch (error) {
@@ -73,15 +81,24 @@ function Parking() {
 
     const update = async () => {
         try {
-            setLoading(true)
-            setChangebtn(false)
-            const updatevehicle = await axios.put(`${Config.api}/updatevehicle/${passvalue}`, {
-                client_name: name,
-                vehicleNo: vehicleno,
-                vehicle_name: vehiclename,
-            })
-            getVehicle()
-            setLoading(false)
+            if (name.length >= 0 && vehiclename.length >= 0 && vehicleno.length >= 0) {
+
+
+                setLoading(true)
+                setChangebtn(false)
+                const updatevehicle = await axios.put(`${Config.api}/updatevehicle/${passvalue}`, {
+                    client_name: name,
+                    vehicleNo: vehicleno,
+                    vehicle_name: vehiclename,
+                })
+                setName("")
+                setVehiclename("")
+                setvehicleno("")
+                getVehicle()
+                setLoading(false)
+            } else {
+                alert("Please fill inputbox")
+            }
         } catch (error) {
             alert("something went wrong")
         }
@@ -90,45 +107,44 @@ function Parking() {
     const btnchange = async (id) => {
         try {
             setChangebtn(true)
+            const getvehice = await axios.get(`${Config.api}/getvehicle/${id}`)
+
+            setName(getvehice.data.getVehicle.client_name)
+            setVehiclename(getvehice.data.getVehicle.vehicle_name)
+            setvehicleno(getvehice.data.getVehicle.vehicleNo)
             setPassvalue(id)
         } catch (error) {
             alert("something went wrong")
         }
     }
 
+    const done = () => {
+        setCheck(false)
+    }
+
     return (
-        <div>
+        <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
             {
                 check ? vehicleendtime.map(get => {
                     return (
-                        <div style={{
-                            display: "flex",
-                            justifyContent: "center",
-                            margin: "10px 0px",
-                            zIndex: "100"
-                        }}>
-                            <div className='popup' style={{
 
-                                backgroundColor: "dodgerblue",
-                                color: "black",
-                                width: "fit-content",
-                                padding: "15px",
-                                fontWeight: "bold",
-                                textAlign: "center"
-                            }}>
-                                <h6 style={{ fontWeight: "bold" }}>VehicleName:   <span style={{ color: "white" }}>{get.vehicle_name}</span></h6>
-                                <h6 style={{ fontWeight: "bold" }}>VehicleNo:      <span style={{ color: "white" }}>{get.vehicleNo}</span></h6>
-                                <h6 style={{ fontWeight: "bold" }}>EndDate:        <span style={{ color: "white" }}>{get.endDate}</span></h6>
-                                <h6 style={{ fontWeight: "bold" }}>EndTime:        <span style={{ color: "white" }}>{get.endTime}</span></h6>
-                                <h6 style={{ fontWeight: "bold" }}>TotalAmount:    <span style={{ color: "white" }}>Rs.{get.totalAmount}</span></h6>
+                        <div className='popup'>
+                            <h6 style={{ fontWeight: "bold" }}>VehicleName:   <span style={{ color: "white" }}>{get.vehicle_name}</span></h6>
+                            <h6 style={{ fontWeight: "bold" }}>VehicleNo:      <span style={{ color: "white" }}>{get.vehicleNo}</span></h6>
+                            <h6 style={{ fontWeight: "bold" }}>EndDate:        <span style={{ color: "white" }}>{get.endDate}</span></h6>
+                            <h6 style={{ fontWeight: "bold" }}>EndTime:        <span style={{ color: "white" }}>{get.endTime}</span></h6>
+                            <h6 style={{ fontWeight: "bold" }}>TotalAmount:    <span style={{ color: "white" }}>Rs.{get.totalAmount}</span></h6>
+                            <div>
 
+                                <button type="button" className='btn btn-primary' onClick={done}>Done</button>
                             </div>
                         </div>
+
                     )
                 }) : null
             }
 
-            <div className='container' >
+            <div className='container mx-auto' style={{ position: "fixed", top: "0px" }}>
 
                 <div className='row mt-3'>
                     <h3 className='text-center mb-4'>Parking</h3>
@@ -169,6 +185,20 @@ function Parking() {
                             visible={true}
                         /> : "Create"}</div>} </button>
                     </div>
+
+                </div>
+
+                <div className='mx-auto' style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+                    <form class="row g-3">
+
+                        <div class="col-auto  mt-5">
+                            <label for="inputPassword2" class="visually-hidden" >Password</label>
+                            <input type="text" class="form-control" placeholder='Search Vehicle' />
+                        </div>
+                        <div class="col-auto mt-5">
+                            <button type="submit" class="btn btn-primary ">Search</button>
+                        </div>
+                    </form>
 
                 </div>
 
@@ -224,7 +254,26 @@ function Parking() {
                     </table>
                 </div>
 
+                <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+                    <nav aria-label="Page navigation example">
+                        <ul class="pagination">
+                            <li class="page-item">
+                                <a class="page-link" href="#" aria-label="Previous">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
+                            <li class="page-item"><a class="page-link" href="#">1</a></li>
+                            <li class="page-item"><a class="page-link" href="#">2</a></li>
+                            <li class="page-item"><a class="page-link" href="#">3</a></li>
+                            <li class="page-item">
+                                <a class="page-link" href="#" aria-label="Next">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
 
+                </div>
 
             </div>
         </div>
