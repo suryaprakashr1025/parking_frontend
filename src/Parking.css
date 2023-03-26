@@ -18,3 +18,14 @@
     z-index: 200 !important;
     margin-top: 100px;
 }
+
+.pagelink{
+    border-radius: 50px;
+    color: black;
+    font-weight: bold;
+}
+.pagelink:hover{
+    background-color: rgb(26, 50, 189);
+    color: white;
+    
+}

@@ -3,21 +3,26 @@ import { React, useState, useEffect } from 'react'
 import { Config } from './Config'
 import "./Parking.css"
 import { ThreeDots, LineWave } from "react-loader-spinner"
+import { Link, useNavigate } from 'react-router-dom'
 
 
 function Parking() {
-
+    const navigate = useNavigate()
     const [name, setName] = useState("")
     const [vehiclename, setVehiclename] = useState("")
     const [vehicleno, setvehicleno] = useState("")
     const [getVehicledata, setGetVehicleData] = useState([])
-    const [check, setCheck] = useState(false)
-    const [vehicleendtime, setvehicleendtime] = useState([])
     const [changebtn, setChangebtn] = useState(false)
     const [passvalue, setPassvalue] = useState()
     const [loading, setLoading] = useState(false)
-    const [endloading, setEndloading] = useState(false)
-    const [page,setpage] = useState(1)
+    const [tableloading, settableloading] = useState(false)
+    const [findvehicle, setfindvehicle] = useState("")
+    const [page, setPage] = useState([])
+    const [currectPage, setCurrentpage] = useState()
+    const [touched, setTouched] = useState(false)
+    const perPage = 4
+
+
     const createVehicle = async () => {
         try {
             if (name.length > 0 && vehiclename.length > 0 && vehicleno.length > 0) {
@@ -50,10 +55,12 @@ function Parking() {
 
     const getVehicle = async () => {
         try {
-            const getdata = await axios.get(`${Config.api}/allvehicle?page=${page}`)
-            console.log(getdata.data)
+            settableloading(true)
+            const getdata = await axios.get(`${Config.api}/allvehicle`)
+            console.log(getdata.data.length)
             setGetVehicleData(getdata.data)
-
+            setPage(getdata.data.slice(0, 4))
+            settableloading(false)
         } catch (error) {
             alert("something went wrong")
         }
@@ -63,21 +70,20 @@ function Parking() {
         getVehicle()
     }, [])
 
-    const end = async (id) => {
+
+    const fetchData = async (index) => {
         try {
-            setEndloading(true)
-            const endtime = await axios.put(`${Config.api}/endvehicle/${id}`)
-            console.log(endtime)
-            const getvehice = await axios.get(`${Config.api}/getvehicle/${id}`)
-            setvehicleendtime([...vehicleendtime, getvehice.data])
-            console.log(getvehice.data)
-            getVehicle()
-            setCheck(true)
-            setEndloading(false)
+            const start = perPage * index;
+            const end = start + perPage;
+            const getData = await axios.get(`${Config.api}/allvehicle`)
+            setPage(getData.data.slice(start, end))
+            setCurrentpage(index)
         } catch (error) {
             alert("something went wrong")
         }
     }
+
+
 
     const update = async () => {
         try {
@@ -108,59 +114,59 @@ function Parking() {
         try {
             setChangebtn(true)
             const getvehice = await axios.get(`${Config.api}/getvehicle/${id}`)
-
-            setName(getvehice.data.getVehicle.client_name)
-            setVehiclename(getvehice.data.getVehicle.vehicle_name)
-            setvehicleno(getvehice.data.getVehicle.vehicleNo)
+            setName(getvehice.data.client_name)
+            setVehiclename(getvehice.data.vehicle_name)
+            setvehicleno(getvehice.data.vehicleNo)
             setPassvalue(id)
         } catch (error) {
             alert("something went wrong")
         }
     }
 
-    const done = () => {
-        setCheck(false)
+
+    const prev = () => {
+        if (currectPage !== 0) {
+            fetchData(currectPage - 1)
+        }
+    }
+
+    const next = () => {
+        if (currectPage !== Math.ceil(getVehicledata.length / perPage) - 1) {
+            fetchData(currectPage + 1)
+        }
+    }
+
+    const pagenumbers = Math.ceil(getVehicledata.length / perPage)
+    console.log(pagenumbers)
+
+    const logout = () => {
+        navigate("/")
     }
 
     return (
         <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
-            {
-                check ? vehicleendtime.map(get => {
-                    return (
-
-                        <div className='popup'>
-                            <h6 style={{ fontWeight: "bold" }}>VehicleName:   <span style={{ color: "white" }}>{get.vehicle_name}</span></h6>
-                            <h6 style={{ fontWeight: "bold" }}>VehicleNo:      <span style={{ color: "white" }}>{get.vehicleNo}</span></h6>
-                            <h6 style={{ fontWeight: "bold" }}>EndDate:        <span style={{ color: "white" }}>{get.endDate}</span></h6>
-                            <h6 style={{ fontWeight: "bold" }}>EndTime:        <span style={{ color: "white" }}>{get.endTime}</span></h6>
-                            <h6 style={{ fontWeight: "bold" }}>TotalAmount:    <span style={{ color: "white" }}>Rs.{get.totalAmount}</span></h6>
-                            <div>
-
-                                <button type="button" className='btn btn-primary' onClick={done}>Done</button>
-                            </div>
-                        </div>
-
-                    )
-                }) : null
-            }
 
             <div className='container mx-auto' style={{ position: "fixed", top: "0px" }}>
 
                 <div className='row mt-3'>
-                    <h3 className='text-center mb-4'>Parking</h3>
+
+                    <div className='col-lg-12 mb-5' style={{ display: "flex", justifyContent: "space-aroud", alignItems: "center" }}>
+                        <h3 className='mx-auto' style={{ color: "black", fontWeight: "bold" }}>Parking</h3>
+                        <button className='btn btn-primary' onClick={logout}>Logout</button>
+                    </div>
 
                     <div className='col-lg-4'>
-                        <label className='form-label'>Name</label>
+                        <label className='form-label' style={{ color: "black", fontWeight: "bold" }}>Name</label>
                         <input type="text" className='form-control' value={name} onChange={(e) => setName(e.target.value)} />
                     </div>
 
                     <div className='col-lg-4'>
-                        <label className='form-label'>VehicleNo</label>
+                        <label className='form-label' style={{ color: "black", fontWeight: "bold" }}>VehicleNo</label>
                         <input type="text" className='form-control' value={vehicleno} onChange={(e) => setvehicleno(e.target.value)} />
                     </div>
 
                     <div className='col-lg-4'>
-                        <label className='form-label'>VehicleName</label>
+                        <label className='form-label' style={{ color: "black", fontWeight: "bold" }}>VehicleName</label>
                         <input type="text" className='form-control' value={vehiclename} onChange={(e) => setVehiclename(e.target.value)} />
                     </div>
 
@@ -189,20 +195,12 @@ function Parking() {
                 </div>
 
                 <div className='mx-auto' style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
-                    <form class="row g-3">
 
-                        <div class="col-auto  mt-5">
-                            <label for="inputPassword2" class="visually-hidden" >Password</label>
-                            <input type="text" class="form-control" placeholder='Search Vehicle' />
-                        </div>
-                        <div class="col-auto mt-5">
-                            <button type="submit" class="btn btn-primary ">Search</button>
-                        </div>
-                    </form>
+                    <Link to="/endtime" className='btn btn-primary mt-2'>Vehicle EndTime</Link>
 
                 </div>
 
-                <div className='row mt-5'>
+                <div className='row mt-4'>
                     <table class="table" style={{ textAlign: "center" }}>
                         <thead>
                             <tr>
@@ -219,34 +217,46 @@ function Parking() {
                         </thead>
                         <tbody>
                             {
-                                getVehicledata.map(get => {
-                                    return (
-                                        <tr >
+                                tableloading ?
 
-                                            <th className='getdata'>{get._id}</th>
-                                            <th className='getdata'>{get.client_name}</th>
-                                            <th className='getdata'>{get.vehicle_name}</th>
-                                            <th className='getdata'>{get.vehicleNo}</th>
-                                            <th className='getdata'>{get.startdate}</th>
-                                            <th className='getdata'>{get.starttime}</th>
-                                            <th className='getdata'>{get.status}</th>
-                                            <input type="button" className='btn btn-primary' value="Update" style={{ color: "black" }} onClick={() => btnchange(get._id)} />
-                                            <button type="button" className='btn btn-primary' style={{ color: "black" }} onClick={() => end(get._id)} >{endloading ? <LineWave
-                                                height="20"
-                                                width="30"
-                                                color="black"
-                                                ariaLabel="line-wave"
-                                                wrapperStyle={{}}
-                                                wrapperClass=""
-                                                visible={true}
-                                                firstLineColor=""
-                                                middleLineColor=""
-                                                lastLineColor=""
-                                            /> : "End"} </button>
+                                    <tr >
+                                        <td colspan="8">
+                                            <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+                                                <ThreeDots
+                                                    height="25"
+                                                    width="40"
+                                                    radius="10"
+                                                    color="black"
+                                                    ariaLabel="three-dots-loading"
+                                                    wrapperStyle={{}}
+                                                    wrapperClassName=""
+                                                    visible={true}
+                                                />
+                                            </div>
+                                        </td>
 
-                                        </tr>
-                                    )
-                                })
+                                    </tr>
+                                    : page.filter(v => v.vehicleNo.toUpperCase().includes(findvehicle)).map(get => {
+                                        return (
+                                            <tr >
+
+                                                <td className='getdata'>{get._id}</td>
+                                                <td className='getdata'>{get.client_name}</td>
+                                                <td className='getdata'>{get.vehicle_name}</td>
+                                                <td className='getdata'>{get.vehicleNo}</td>
+                                                <td className='getdata'>{get.startdate}</td>
+                                                <td className='getdata'>{get.starttime}</td>
+                                                <td className='getdata'>{get.status}</td>
+                                                <td className='getdata'>
+                                                    <input type="button" className='btn btn-primary ' value="Update" style={{ color: "white" }} onClick={() => btnchange(get._id)} />
+                                                </td>
+
+
+
+                                            </tr>
+                                        )
+                                    })
+
                             }
 
 
@@ -254,27 +264,32 @@ function Parking() {
                     </table>
                 </div>
 
-                <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
-                    <nav aria-label="Page navigation example">
-                        <ul class="pagination">
-                            <li class="page-item">
-                                <a class="page-link" href="#" aria-label="Previous">
-                                    <span aria-hidden="true">&laquo;</span>
-                                </a>
-                            </li>
-                            <li class="page-item"><a class="page-link" href="#">1</a></li>
-                            <li class="page-item"><a class="page-link" href="#">2</a></li>
-                            <li class="page-item"><a class="page-link" href="#">3</a></li>
-                            <li class="page-item">
-                                <a class="page-link" href="#" aria-label="Next">
-                                    <span aria-hidden="true">&raquo;</span>
-                                </a>
-                            </li>
-                        </ul>
-                    </nav>
+                {
+                    getVehicledata.length > 4 ?
 
-                </div>
-
+                        <nav aria-label="Page navigation example" className="navpage mx-auto"  >
+                            <div className='paginationdiv'>
+                                <ul class="nav justify-content-center pageul my-2">
+                                    <li class="nav-item">
+                                        <a class="nav-link pagelink" style={{ cursor: "pointer" }} onClick={prev}>Prev</a>
+                                    </li>
+                                    {
+                                        getVehicledata.length > 4 ?
+                                            [...Array(pagenumbers)].map((page, index) => {
+                                                return (
+                                                    <li class="nav-item">
+                                                        <a class={`nav-link pagelink ${currectPage === index ? "active" : null}`} style={{ cursor: "pointer" }} onClick={() => fetchData(index)}>{index + 1}</a>
+                                                    </li>
+                                                )
+                                            }) : null
+                                    }
+                                    <li class="nav-item">
+                                        <a class="nav-link pagelink" style={{ cursor: "pointer" }} onClick={next}>Next</a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </nav> : null
+                }
             </div>
         </div>
     )
