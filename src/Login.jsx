@@ -24,6 +24,7 @@ function Login() {
             console.log(name, adminpassword)
             console.log(adminlogin)
             if (adminlogin.data.message === "success") {
+                localStorage.setItem("parking",adminlogin.data.token)
                 navigate("/parking")
                 setLoading(false)
             } else {

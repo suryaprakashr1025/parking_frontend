@@ -12,10 +12,15 @@ function Endtime() {
     const [vehicleendtime, setvehicleendtime] = useState([])
     const [check, setCheck] = useState(false)
     const [tableloading, settableloading] = useState(false)
+
     const getVehicle = async () => {
         try {
             settableloading(true)
-            const getdata = await axios.get(`${Config.api}/allvehicle`)
+            const getdata = await axios.get(`${Config.api}/allvehicle`,{
+                headers:{
+                  "Authorization":localStorage.getItem("parking")
+                }
+            })
             console.log(getdata.data.length)
             setGetVehicleData(getdata.data)
             settableloading(false)
@@ -39,7 +44,11 @@ function Endtime() {
             const endtime = await axios.put(`${Config.api}/endvehicle/${id}`)
             console.log(endtime)
             setEndloading(false)
-            const getvehice = await axios.get(`${Config.api}/getvehicle/${id}`)
+            const getvehice = await axios.get(`${Config.api}/getvehicle/${id}`,{
+                headers:{
+                  "Authorization":localStorage.getItem("parking"),
+                }
+            })
             setvehicleendtime(getvehice.data)
             console.log(getvehice.data)
 

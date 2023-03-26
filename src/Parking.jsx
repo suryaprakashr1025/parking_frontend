@@ -32,6 +32,11 @@ function Parking() {
                     client_name: name,
                     vehicleNo: vehicleno,
                     vehicle_name: vehiclename,
+                },
+                {
+                    headers:{
+                      "Authorization":localStorage.getItem("parking")
+                    }
                 })
                 if (vehicle.data.message === "vehicle created successfully") {
                     setName("")
@@ -56,7 +61,11 @@ function Parking() {
     const getVehicle = async () => {
         try {
             settableloading(true)
-            const getdata = await axios.get(`${Config.api}/allvehicle`)
+            const getdata = await axios.get(`${Config.api}/allvehicle`,{
+                headers:{
+                  "Authorization":localStorage.getItem("parking")
+                }
+            })
             console.log(getdata.data.length)
             setGetVehicleData(getdata.data)
             setPage(getdata.data.slice(0, 4))
@@ -75,7 +84,11 @@ function Parking() {
         try {
             const start = perPage * index;
             const end = start + perPage;
-            const getData = await axios.get(`${Config.api}/allvehicle`)
+            const getData = await axios.get(`${Config.api}/allvehicle`,{
+                headers:{
+                  "Authorization":localStorage.getItem("parking")
+                }
+            })
             setPage(getData.data.slice(start, end))
             setCurrentpage(index)
         } catch (error) {
@@ -96,6 +109,10 @@ function Parking() {
                     client_name: name,
                     vehicleNo: vehicleno,
                     vehicle_name: vehiclename,
+                },{
+                    headers:{
+                      "Authorization":localStorage.getItem("parking")
+                    }
                 })
                 setName("")
                 setVehiclename("")
@@ -113,10 +130,16 @@ function Parking() {
     const btnchange = async (id) => {
         try {
             setChangebtn(true)
-            const getvehice = await axios.get(`${Config.api}/getvehicle/${id}`)
-            setName(getvehice.data.client_name)
-            setVehiclename(getvehice.data.vehicle_name)
-            setvehicleno(getvehice.data.vehicleNo)
+            const getvehice = await axios.get(`${Config.api}/getvehicle/${id}`,
+            {
+                headers:{
+                  "Authorization":localStorage.getItem("parking")
+                }
+            })
+            console.log(getvehice.data[0].client_name)
+            setName(getvehice.data[0].client_name)
+            setVehiclename(getvehice.data[0].vehicle_name)
+            setvehicleno(getvehice.data[0].vehicleNo)
             setPassvalue(id)
         } catch (error) {
             alert("something went wrong")
@@ -140,6 +163,7 @@ function Parking() {
     console.log(pagenumbers)
 
     const logout = () => {
+        localStorage.removeItem("parking")
         navigate("/")
     }
 
